@@ -1,0 +1,120 @@
+openapi: 3.0.3
+info:
+  title: WA Validator — WhatsApp Number Checker API
+  version: "1.0.0"
+  description: |
+    Check if a phone number is registered on WhatsApp. One number per request,
+    answered synchronously. 1 credit per number; server-side errors are not charged.
+  contact:
+    name: WA Validator
+    url: https://wavalidator.com/contact/
+  termsOfService: https://wavalidator.com/terms/
+externalDocs:
+  description: Full API documentation
+  url: https://wavalidator.com/api-docs/
+servers:
+  - url: https://wavalidator.com
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/validate/:
+    post:
+      operationId: checkWhatsAppNumber
+      summary: Check if a phone number has WhatsApp
+      tags: [WhatsApp number check]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValidateRequest"
+            example:
+              phone_number: "14155551234"
+      responses:
+        "200":
+          description: Check completed
+          headers:
+            X-RateLimit-Limit:
+              schema: { type: integer }
+            X-RateLimit-Remaining:
+              schema: { type: integer }
+            X-RateLimit-Reset:
+              description: Unix timestamp when the per-minute window resets
+              schema: { type: integer }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidateResponse"
+              examples:
+                valid:
+                  summary: Number has WhatsApp
+                  value: { phone_number: "14155551234", status: valid, credits_remaining: 99 }
+                invalid:
+                  summary: Number has no WhatsApp
+                  value: { phone_number: "14155550000", status: invalid, credits_remaining: 98 }
+        "400":
+          description: Invalid JSON or phone_number missing
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Missing or invalid API key
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "402":
+          description: Insufficient credits
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "429":
+          description: Per-minute or daily rate limit reached
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RateLimitError" }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: API key from https://wavalidator.com/dashboard/
+  schemas:
+    ValidateRequest:
+      type: object
+      required: [phone_number]
+      properties:
+        phone_number:
+          type: string
+          description: International format with country code. "+", spaces and "-" are stripped. Must be 7–15 digits after normalization.
+          example: "14155551234"
+    ValidateResponse:
+      type: object
+      required: [phone_number, status, credits_remaining]
+      properties:
+        phone_number:
+          type: string
+          description: Normalized number (digits only)
+        status:
+          type: string
+          enum: [valid, invalid, error]
+          description: valid = registered on WhatsApp; invalid = not registered or malformed; error = check not completed (not charged)
+        credits_remaining:
+          type: integer
+        cached:
+          type: boolean
+          description: Present when the result was served from a recent check of the same number
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+    RateLimitError:
+      type: object
+      properties:
+        status: { type: string, enum: [limit] }
+        error: { type: string }
+        message: { type: string }
+        retry_after:
+          type: integer
+          description: Seconds to wait (per-minute limit)
+        validations_today: { type: integer }
+        daily_limit: { type: integer }

@@ -1,0 +1,37 @@
+{
+  "name": "WhatsApp Number Checker API",
+  "provider": "WA Validator",
+  "website": "https://wavalidator.com",
+  "documentation": "https://wavalidator.com/api-docs/",
+  "shape": "realtime",
+  "method": "POST",
+  "endpoint": "https://wavalidator.com/api/v1/validate/",
+  "auth": {
+    "type": "bearer",
+    "header": "Authorization",
+    "format": "Bearer YOUR_API_KEY"
+  },
+  "request": {
+    "phone_number": "string, international format with country code, 7-15 digits"
+  },
+  "response": {
+    "phone_number": "string",
+    "status": "valid | invalid | error",
+    "credits_remaining": "integer",
+    "cached": "boolean, optional"
+  },
+  "pricing": {
+    "unit": "credit",
+    "cost_per_number": 1,
+    "charged_on_error": false
+  },
+  "limits": {
+    "numbers_per_request": 1,
+    "default_requests_per_minute": 20,
+    "daily_quota": "depends on plan"
+  },
+  "related": [
+    "https://github.com/wavalidator/whatsapp-bulk-checker-api",
+    "https://github.com/wavalidator/whatsapp-checker-mcp-server"
+  ]
+}

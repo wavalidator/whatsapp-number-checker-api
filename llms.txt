@@ -1,0 +1,26 @@
+# WA Validator — WhatsApp Number Checker API
+
+> Check if a phone number is registered on WhatsApp. One number per request, synchronous JSON response. 1 credit per number.
+
+## Endpoint
+POST https://wavalidator.com/api/v1/validate/
+Headers: Authorization: Bearer YOUR_API_KEY ; Content-Type: application/json
+Body: {"phone_number": "14155551234"}
+
+## Response
+{"phone_number": "14155551234", "status": "valid", "credits_remaining": 99}
+status: "valid" = has WhatsApp; "invalid" = no WhatsApp or malformed number; "error" = check failed, retry, not charged.
+Optional field: "cached": true when served from a recent check.
+
+## Number format
+Country code + national number, digits only. "+", spaces and "-" are stripped. Must be 7-15 digits. Drop the national trunk 0 (UK 07911123456 -> 447911123456).
+
+## Errors
+400 bad JSON / missing phone_number; 401 bad or missing key; 402 no credits; 429 rate limit ({"status":"limit","retry_after":N}); 5xx retry with backoff.
+Default limit 20 requests/minute per key plus a daily quota per plan. Headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset.
+
+## Links
+- Docs: https://wavalidator.com/api-docs/
+- OpenAPI: https://github.com/wavalidator/whatsapp-number-checker-api/blob/main/openapi.yaml
+- Bulk (100 numbers/request): https://github.com/wavalidator/whatsapp-bulk-checker-api
+- MCP server for AI assistants: https://github.com/wavalidator/whatsapp-checker-mcp-server
